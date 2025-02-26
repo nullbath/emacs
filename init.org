@@ -1,0 +1,101 @@
+#+STARTUP: content
+* Init.el
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                        ("elpa" . "https://elpa.gnu.org/packages/"))package-quickstart t)
+(package-initialize)
+#+end_src
+
+** Start Emacs daemon
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+  (server-start)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
+(setq use-package-always-ensure nil)
+(setq load-prefer-newer t)
+#+end_src
+
+* EXWM
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+          (use-package exwm
+  	  :ensure t)
+          
+          (require 'exwm)
+          ;;;; Set the initial workspace number.
+          (setq exwm-workspace-number 4)
+          (setq exwm-workspace-index-map
+                (lambda (index) (number-to-string (1+ index))))
+          ;;;; Make class name the buffer name.
+          (add-hook 'exwm-update-class-hook
+            (lambda () (exwm-workspace-rename-buffer exwm-class-name)))
+          ;; Global keybindings.
+          (setq exwm-input-global-keys
+                `(([?\s-r] . exwm-reset) ;; s-r: Reset (to line-mode).
+          	([?\s-f] . exwm-floating-toggle-floating) ;; s-w: Switch workspace.
+          	([?\s-i] . exwm-input-toggle-keyboard) ;; s-w: Switch workspace.
+                  ([?\s-&] . (lambda (cmd) ;; s-&: Launch application.
+                               (interactive (list (read-shell-command "$ ")))
+                               (start-process-shell-command cmd nil cmd)))
+                  ;; s-N: Switch to certain workspace.
+                  ,@(mapcar (lambda (i)
+                              `(,(kbd (format "s-%d" i)) .
+                                (lambda ()
+                                  (interactive)
+                                  (exwm-workspace-switch-create i))))
+                            (number-sequence 0 9))))
+          ;; Enable EXWM
+          (add-hook 'exwm-manage-finish-hook
+                  (lambda () (exwm-layout-show-mode-line)
+    (exwm-layout-toggle-mode-line)
+      	      ))
+    (exwm-layout-show-mode-line)
+       
+          (exwm-enable)
+            
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+    (require 'font-lock)
+    (global-font-lock-mode 1)
+    (setq font-lock-maximum-decoration t)
+    (setq font-lock-support-mode t)
+  
+  (dolist (mode '(shell-mode-hook
+		  compilation-mode-hook
+		  special-mode-hook))
+    (add-hook mode (lambda () (font-lock-mode -1))))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el 
+(setq-default mode-line-format nil)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/init.el
+(load-file '"~/.emacs.d/config.el")
+#+end_src

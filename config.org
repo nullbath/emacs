@@ -1,0 +1,3249 @@
+#+STARTUP: content
+* Personal Info
+** Information for GPG configuration, email clients, file templates and snippets.
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq user-full-name "nullbath"
+        user-mail-address "nullbath@gmail.com")
+#+end_src
+
+* Optimizations
+** Native Compilation
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (setq native-comp-async-report-warnings-errors nil)
+    (global-auto-revert-mode 1)
+    (setq idle-update-delay 1.0)
+    (setq auto-revert-interval 5.0)
+    (setq jit-lock-defer-time 0
+          jit-lock-stealth-time 0.2)
+    (setq read-process-output-max (* 1024 1024))
+  (setq inhibit-compacting-font-caches t)
+
+  (add-hook 'after-init-hook (lambda ()
+                               (setq org-agenda-tags-column -80)
+                               (setq org-agenda-files '("~/org/notes" "~/org/"))
+                               (nb/init-function)))
+#+end_src
+
+** GCMH - The Garbage Collector Magic Hack
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package gcmh
+    :ensure t
+    :init (gcmh-mode 1)
+    :config
+    (setq gcmh-idle-delay 12
+          garbage-collection-messages t
+          gcmh-auto-idle-delay-factor 15
+          gcmh-high-cons-threshold (* 512 1024 1024)
+          gcmh-low-cons-threshold (* 8 1024 1024)
+          gc-cons-threshold (* 1024 1024 1024)))
+#+end_src
+
+* Meow
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package meow
+    :ensure t
+    :config
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-motion-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("<escape>" . ignore))
+
+  (meow-leader-define-key
+   ;; Use SPC (0-9) for digit arguments.
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("/" . meow-keypad-describe-key)
+   '(":" . execute-extended-command)
+   '("?" . meow-cheatsheet))
+
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("P" . yank-from-kill-ring)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-goto-line)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore))
+
+  (meow-global-mode 1)
+#+end_src
+
+** Meow Lispy integration
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq meow-paren-keymap (make-keymap))
+  (meow-define-state paren
+    "meow state for interacting with smartparens"
+    :lighter " [P]"
+    :keymap meow-paren-keymap)
+
+  (setq meow-cursor-type-paren 'hollow)
+
+  (meow-define-keys 'paren
+    '("<escape>" . meow-normal-mode)
+    '("h" . lispy-left)
+    '("k" . lispy-up)
+    '("l" . lispy-right)
+    '("c" . lispy-convolute)
+    '("j" . lispy-down)
+    '("r" . lispy-raise)
+    '(">" . lispy-slurp)
+    '("s-." . lispy-goto-symbol)
+    '("s-," . pop-tag-mark)
+    '("<" . lispy-barf)
+    '("]" . lispy-forward)
+    '("[" . lispy-backward)
+    '("{" . lispy-braces)
+    '("}" . lispy-bracket)
+    '("\"" . lispy-quotes)
+    '("s-/" . lispy-describe-inline)
+    '(";" . lispy-comment)
+    '("a" . lispy-ace-symbol)
+    '("b" . lispy-back)
+    '("c" . lispy-clone)
+    '("d" . lispy-different)
+    '("e" . lispy-eval)
+    '("f" . lispy-flow)
+    '("g" . lispy-goto)
+    '("i" . meow-insert-mode)
+    '("TAB" . meow-indent)
+    '("m" . lispy-mark-list)
+    '("n" . lispy-new-copy)
+    '("o" . lispy-other-mode)
+    '("s" . lispy-move-down)
+    '("t" . lispy-teleport)
+    '("u" . lispy-undo)
+    '("v" . lispy-view)
+    '("w" . lispy-move-up)
+    '("x b" . lispy-bind-variable)
+    '("x c" . lispy-to-cond)
+    '("x d" . lispy-to-defun)
+    '("x f" . lispy-flatten)
+    '("x i" . lispy-to-ifs)
+    '("x l" . lispy-to-lambda)
+    '("x e" . lispy-edebug)
+    '("x j" . lispy-debug-step-in)
+    '("x r" . lispy-eval-and-replace)
+    '("x u" . lispy-unbind-variable)
+    '("x B" . lispy-store-region-and-buffer)
+    '("x T" . lispy-ert)
+    '("y" . lispy-occur)
+    '("z" . lispy-knight)
+    '("A" . lispy-beginning-of-defun)
+    '("B" . lispy-ediff-regions)
+    '("C" . lispy-convolute)
+    '("D" . pop-tag-mark)
+    '("E" . lispy-eval-and-insert)
+    '("F" . lispy-follow)
+    '("G" . lispy-goto-local)
+    '("H" . lispy-ace-symbol-replace)
+    '("I" . lispy-shifttab)
+    '("J" . lispy-outline-next)
+    '("K" . lispy-outline-prev)
+    '("M" . lispy-multiline)
+    '("N" . lispy-narrow)
+    '("O" . lispy-oneline)
+    '("P" . lispy-paste)
+    '("Q" . lispy-ace-char)
+    '("R" . lispy-raise-some)
+    '("S" . lispy-stringify)
+    '("V" . lispy-visit)
+    '("W" . lispy-widen)
+    '("Z" . lispy-edebug-stop)
+    '("SPC" . lispy-space))
+
+  (meow-define-keys 'normal
+    '("s-;" . meow-paren-mode))
+  (meow-define-keys 'insert
+    '("s-;" . meow-paren-mode))
+  (setq meow-keypad-describe-delay 0)
+
+  (defvar dc/return-to-paren nil "Local var to track if we entered insert from paren mode")
+
+  (defun meow-escape-or-normal-mode ()
+    (interactive)
+    (if dc/return-to-paren
+        (prog1 
+            (meow-paren-mode 1)
+          (setq-local dc/return-to-paren nil))
+      (meow-normal-mode 1)))
+
+  (defun meow-enter-insert-from-paren ()
+    (interactive)
+    (setq-local dc/return-to-paren t)
+    (meow-insert-mode 1))
+
+  ;; Bind escape in insert mode to our new function
+  (meow-define-keys 'insert
+    '("<escape>" . meow-escape-or-normal-mode))
+
+  ;; Update paren mode to use our new insert function
+  (meow-define-keys 'paren
+    '("i" . meow-enter-insert-from-paren))
+
+
+  (advice-add 'meow-paren-mode :after
+              (lambda (&rest _)
+                (if meow-paren-mode
+                    (lispy-mode 1)
+                  (lispy-mode -1))))
+
+  (setq lispy-mode-map-base (make-sparse-keymap)
+        lispy-mode-map-special (make-sparse-keymap)
+        lispy-mode-map-lispy (make-sparse-keymap))
+  
+  (setq show-paren-style 'expression)
+
+  (defun conditionally-enable-lispy ()
+    (when (eq this-command 'eval-expression)
+      (lispy-mode 1)))
+  (add-hook 'minibuffer-setup-hook 'conditionally-enable-lispy)
+    #+end_src
+    
+** Binds
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+      '("i s" . consult-yasnippet)
+      '("i i" . imenu)
+      '("i l" . org-insert-link))
+  
+    (meow-leader-define-key
+      '("e r" . eval-region))
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+      '("w W" . nb/autorandr-monitor-select)
+      '("w =" . balance-windows))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+   '("o a" . nb/my-custom-agenda)
+   '("o -" . dired-jump)
+   '("o g" . nb/create-popup-gptel)
+   '("o G" . gptel)
+   '("o i" . rcirc)
+   '("o T" . create-vterm-here)
+   '("o t" . create-dropdown-vterm)
+   '("o w" . qutebrowser-launcher-tab))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+   '("n f" . consult-org-roam-search)
+   '("n F" . org-roam-node-find)
+   '("n c" . org-roam-capture)
+   '("n i" . org-roam-node-insert)
+   '("n l" . org-roam-buffer-toggle)
+   '("n u" . org-roam-ui-open)
+   '("n d" . org-roam-dailies-goto-today))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+   '("f f" . find-file)
+   '("f t" . org-babel-tangle)
+   '("f p" . nb/open-project)
+   '("f c" . nb/choose-system-config-files)
+   '("f s" . save-buffer))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (meow-leader-define-key
+   '("b b" . switch-to-buffer)
+   '("b k" . kill-current-buffer))
+#+end_src
+
+** Set the default Meow states different modes use
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq meow-mode-state-list '((devdocs-mode . normal) (t . normal) (compilation-mode . normal) (help-mode . normal) (conf-mode . normal) (fundamental-mode . normal) (help-mode . motion) (prog-mode . normal) (messages-buffer-mode . normal) (text-mode . normal)))
+#+end_src
+
+* Agressive Indent mode
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+   (use-package lispy
+     :ensure t)
+   (custom-set-faces
+  '(avy-lead-face ((t (:foreground "white" :background "red"))))
+  '(avy-lead-face-0 ((t (:foreground "white" :background "purple"))))
+  '(avy-lead-face-1 ((t (:foreground "white" :background "green"))))
+  '(avy-lead-face-2 ((t (:foreground "white" :background "blue")))))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package aggressive-indent
+    :ensure t)
+
+  (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+
+  (use-package multiple-cursors 
+    :ensure t)
+#+end_src
+
+* Emacs Configuration
+** Visit emacs configuration
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+    (defun nb/visit-private-config ()
+      (interactive)
+      (find-file "~/.emacs.d/config.org"))
+#+end_src
+
+** Test emacs configuration
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/configtest ()
+    "Test emacs configuration with batch flag"
+    (interactive)
+    (create-vterm-here)
+    (vterm-send-string "emacs -Q --batch --debug-init --eval \"(load-file \\\"~/.emacs.d/init.el\\\")\"")
+    (vterm-send-return))
+#+end_src
+
+** Visit a configuration file
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun launch-config-files (dir)
+  "Open config files in the specified directory."
+  (let ((files (directory-files dir nil "^[^.].*\\.org$")))
+    (dolist (file files)
+      (find-file (concat dir file)))))
+
+  (defun nb/choose-system-config-files (&optional dir)
+    (interactive)
+    (let* ((dir (or dir (expand-file-name "~/org/systemconfig/")))
+	   (files (directory-files-recursively dir ".*\\.org$"))
+	   (relative-files (mapcar (lambda (f) 
+				   (file-relative-name f dir))
+				 files))
+	   (selected (completing-read "Config: " relative-files)))
+      (find-file (expand-file-name selected dir))))
+#+end_src
+
+** Reload configuration
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/reload-config ()
+    "Reload configuration similar to doom/reload"
+    (interactive)
+    (load-file user-init-file)
+    (normal-top-level-add-subdirs-to-load-path)
+    (load-theme (car custom-enabled-themes) t)
+    (message "Configuration reloaded"))
+#+end_src
+
+* Backups and lockfiles 
+** Set the backup directory
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+#+end_src
+
+** Backup settings
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq backup-inhibited t
+        backup-by-copying nil
+        delete-old-versions t
+        create-lockfiles nil
+        make-backup-files nil
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+#+end_src
+
+* Remote dev
+** Homelab Config
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun homelab-login()
+  (interactive)
+  (find-file "/ssh:homelab:/home/nullbath/"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun homelab-full-login()
+  (interactive)
+  (find-file "/ssh:homelab:/home/nullbath/")
+  (split-window-below -8)
+  (other-window 1)
+  (let ((default-directory "/ssh:homelab:/home/nullbath/"))
+    (eshell t)
+    (other-window -1)))
+#+end_src
+
+** Tramp
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq tramp-default-method "rsync"
+        tramp-default-user "nullbath"
+        tramp-completion-reread-directory-timeout nil
+        tramp-use-ssh-controlmaster-options t
+        tramp-connection-timeout 5
+        tramp-verbose 1
+        tramp-persistency-file-name "~/.emacs.d/tramp"
+        vc-ignore-dir-regexp
+        (format "%s\\|%s"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+#+end_src
+
+* IRC
+** List of servers for rcirc to auto-connect to
+
+                                ("#emacs" "#linux" "#systemcrafters" "##rust" "#commonlisp" "#lispcafe")
+
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (add-hook 'rcirc-mode-hook 'rcirc-omit-mode)
+    (setq rcirc-server-alist '(("irc.libera.chat" :channels
+                                ("#emacs" "#linux")
+                                :port 6697 :encryption tls)))
+#+end_src
+
+* Theming, Fonts, and Customization
+** Agressive indent mode
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package aggressive-indent
+    :ensure t
+    :hook ((emacs-lisp-mode . aggressive-indent-mode)
+	   (css-mode . aggressive-indent-mode)))
+#+end_src
+
+** Visual Bell
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq visible-bell nil
+	ring-bell-function 'ignore)
+#+end_src
+
+** Centered cursor mode
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package centered-cursor-mode
+    :ensure t
+    :demand
+    :config
+    (global-centered-cursor-mode))
+#+end_src
+
+** Rainbow mode
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package rainbow-mode
+    :ensure t)
+  (add-hook 'org-mode-hook #'rainbow-mode)
+#+end_src
+
+** Keycast
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package keycast
+    :ensure t)
+#+end_src
+
+** Mouse settings
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq scroll-error-top-bottom t
+        scroll-preserve-screen-position t
+        scroll-conservatively 101
+        scroll-step 5
+        hscroll-step 1
+        auto-window-vscroll nil
+        hscroll-margin 2
+        mouse-wheel-scroll-amount '(3 ((shift) . hscroll)))
+#+end_src
+
+Hide the mouse cursor when not in use using [[https://github.com/Airblader/unclutter-xfixes][unclutter]]. 
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/unclutter ()
+    (interactive)
+    (start-process "unclutter" nil "unclutter"))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+ (start-process "unclutter" nil "unclutter")
+#+end_src
+** Solaire mode :disabled:
+
+#+begin_src elisp :tangle no
+  (use-package solaire-mode
+    :ensure t
+    :init
+    (solaire-global-mode +1))
+#+end_src
+
+[[https://github.com/hlissner/emacs-solaire-mode][Solaire-mode]] requires one of the following themes:
+- doom-themes
+- nano-theme
+- modus-themes
+- parchment
+- spacemacs-theme
+- stimmung-themes
+- vscode-dark-plus-theme
+- wilmersdorf-theme
+
+** Compilation
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq compilation-always-kill t
+        compilation-ask-about-save nil
+        compilation-scroll-output 'first-error)
+  (setq compilation-window-height 20)
+
+#+end_src
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (setq whitespace-line-column nil)
+     (setq window-divider-default-bottom-width 3
+          window-divider-default-places t
+            window-divider-default-right-width 1)
+
+    (auto-fill-mode 1)             ; enable auto wrapping
+      (setq window-resize-pixelwise nil)
+
+      (setq blink-matching-paren nil)
+      (setq kill-do-not-save-duplicates t)
+
+
+    (setq help-window-select t)
+
+#+end_src
+** Flycheck
+#+begin_src emacs-lisp ~/.emacs.d/config.el
+  (use-package flycheck
+    :ensure t)
+  (setq flycheck--automatically-enabled-checkers 'rust)
+#+end_src
+
+** Helpful
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package helpful
+  :ensure t
+  :custom
+  (helpful-max-buffers 1)
+  :bind (:map helpful-mode-map
+         ("J" . scroll-up-command)
+         ("K" . scroll-down-command)))
+#+end_src
+
+** Resize mode
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package resize-window
+    :ensure t
+    :config
+    (defvar resize-window-alias-list
+      '((right ?l)
+        (up ?j)
+        (left ?h)
+        (down ?k))))
+#+end_src
+
+** Parens
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq show-paren-delay 0
+        show-paren-highlight-openparen t
+        show-paren-when-point-inside-paren t
+        show-paren-when-point-in-periphery t)
+#+end_src
+
+** Disable line numbers
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (global-display-line-numbers-mode -1)
+  (setq display-line-numbers-type nil)
+    (setq-default bidi-display-reordering nil)
+#+end_src
+** Clean up emac default looks
+** Column width
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq-default fill-column 80)
+  (global-display-line-numbers-mode -1)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(blink-cursor-mode -1)
+
+(define-key minibuffer-local-map (kbd "C-j") 'next-line-or-history-element)
+(define-key minibuffer-local-map (kbd "C-k") 'previous-line-or-history-element)
+#+end_src
+
+** Set Default line spacing
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq-default line-spacing 0)
+#+end_src
+
+** Enable/disable laptop keyboard
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (defun nb/disable-internal-keyboard ()
+      "Disable the built-in laptop keyboard with password prompt."
+      (interactive)
+      (let ((passwd (read-passwd "Password: ")))
+        (shell-command
+         (format "echo %s | sudo -S modprobe -r atkbd" passwd))))
+
+    (defun nb/enable-internal-keyboard ()
+      "Enable the built-in laptop keyboard with password prompt."
+      (interactive)
+      (let ((passwd (read-passwd "Password: ")))
+        (shell-command
+         (format "echo %s | sudo -S modprobe atkbd" passwd))))
+#+end_src
+
+** Unclutter
+** Set scroll margin
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq scroll-margin 0)
+#+end_src
+
+** Line numbers
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(dolist (mode '(emacs-lisp-mode-hook
+                lisp-mode-hook
+                scheme-mode-hook
+                clojure-mode-hook
+                common-lisp-mode-hook))
+  (add-hook mode #'display-line-numbers-mode))
+#+end_src
+
+** Short answers
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq use-short-answers t)
+#+end_src
+
+** Fast/imprecise scrolling
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq fast-but-imprecise-scrolling t)
+(setq redisplay-skip-fontification-on-input t)
+#+end_src
+
+** Fix word wrapping
+*** Adaptive wrap
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package adaptive-wrap
+  :ensure t
+  :hook(visual-line-mode . adaptive-wrap-prefix-mode))
+#+end_src
+
+*** Visual line mode
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (global-visual-line-mode t)
+  (setq org-src-fontify-natively t)
+  (setq org-fontify-quote-and-verse-blocks t)
+  (setq org-fontify-whole-heading-line t)
+  (setq org-tags-column -80)
+
+#+end_src
+
+** Set window padding
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(window-divider-mode -1)
+#+end_src
+
+** Themes
+*** Make custom themes safe
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq custom-safe-themes t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package stimmung-themes
+  :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package ef-themes
+  :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package doom-themes
+  :ensure t)
+#+end_src
+
+*** Load theme
+
+You can use 'consult-theme' in order to quickly unload your current theme and visit a new one. Useful for browsing theme collections.
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (load-theme 'stimmung-themes-light t)
+    (set-frame-font "Iosevka Nerd Font Bold 11")
+
+      (setq image-auto-resize 'fit-width)
+#+end_src
+
+** Transparency/Opacity
+*** Defaults
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(set-frame-parameter nil 'alpha-background nil)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(add-to-list 'default-frame-alist '(alpha-background . nil))
+#+end_src
+
+*** Set theme to be transparent
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/setthemetransparent()
+  (interactive)
+  (dolist (frame (frame-list))
+    (set-frame-parameter frame 'alpha-background 0.92))
+  (add-to-list 'default-frame-alist '(alpha-background . 0.92))
+  (nb/set-wallpaper)
+  (start-process "fastcompmgr" nil "fastcompmgr"))
+#+end_src
+
+*** Set theme to be opaque
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/setthemeopaque()
+(interactive)
+(set-frame-parameter nil 'alpha-background nil)
+(add-to-list 'default-frame-alist '(alpha-background . nil))
+(kill-process "fastcompmgr"))
+#+end_src
+
+** Highlight Indent Guides Mode
+
+Leverage 'highlight-indent-guides' to have a minor mode highlight indentation levels. The hook should enable in most programming modes.
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package highlight-indent-guides
+      :ensure t
+      :config
+      (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
+#+end_src
+
+** Removes check when killing modified buffer if nil
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq kill-buffer-query-functions nil)
+#+end_src
+
+* Vertico
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  ;; Enable vertico
+  (use-package vertico
+    :ensure t
+    :custom
+    (vertico-scroll-margin 2) ;; Different scroll margin
+    (vertico-count 15) ;; Show more candidates
+    (vertico-resize nil) ;; Grow and shrink the Vertico minibuffer
+    (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+    :init
+    (vertico-mode))
+      ;; Persist history over Emacs restarts. Vertico sorts by history position.
+      (use-package savehist
+          :ensure t
+          :init
+        (savehist-mode))
+
+    (add-hook 'vertico-mode-hook (lambda ()
+      (centered-cursor-mode -1)))
+  ;;diable font lock in vertico 
+  (add-hook 'vertico-mode-hook
+            (lambda ()
+              (add-hook 'minibuffer-setup-hook
+                       (lambda ()
+                         (font-lock-mode -1)))))
+
+    ;; Or more specifically for minibuffer
+    (add-hook 'minibuffer-setup-hook (lambda ()
+      (centered-cursor-mode -1)))
+
+    (add-hook 'minibuffer-setup-hook (lambda ()
+      (font-lock-mode -1)))
+      (use-package emacs
+
+        :custom
+        (enable-recursive-minibuffers t)
+        (read-extended-command-predicate #'command-completion-default-include-p)
+        :init
+        (defun crm-indicator (args)
+          (cons (format "[CRM%s] %s"
+                        (replace-regexp-in-string
+                         "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                         crm-separator)
+                        (car args))
+                (cdr args)))
+        (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+        (setq minibuffer-prompt-properties
+              '(read-only t cursor-intangible t face minibuffer-prompt))
+        (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+  #+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (with-eval-after-load 'vertico
+    (define-key vertico-map (kbd "TAB") #'vertico-insert))
+
+  (setq vertico-preselect 'prompt
+	vertico-resize nil) 
+#+end_src
+
+** Vertico posframe :disabled:
+
+#+begin_src elisp :tangle no
+  (use-package vertico-posframe
+    :ensure t)
+  (vertico-posframe-mode 1)
+  (setq vertico-multiform-commands
+        '((consult-line
+           posframe
+           (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
+           (vertico-posframe-border-width . 10)
+           (vertico-posframe-fallback-mode . vertico-buffer-mode))
+          (t posframe)))
+  (vertico-multiform-mode 0)
+  (setq vertico-posframe-width 100)
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-center)
+#+end_src
+
+#+begin_src elisp :tangle no
+    (use-package org-popup-posframe
+          :ensure t
+            :straight (:type git :host github :repo "A7R7/org-popup-posframe"))
+      (org-popup-posframe-mode 1)
+
+    (defun nb/wrap-in-src-block ()
+      "Wrap the selected region in a src block."
+      (interactive)
+      (let ((lang (read-string "Language
+  : ")))
+        (when (region-active-p)
+          (let ((start (region-beginning))
+                (end (region-end)))
+            (save-excursion
+              (goto-char end)
+              (insert "\n#+end_src\n")
+              (goto-char start)
+              (insert (format "\n#+begin_src %s\n" lang)))))))
+  
+
+#+end_src
+
+* Smartparens
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package smartparens
+    :ensure t)
+  (smartparens-global-mode 1)
+#+end_src
+
+* Marginalia
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package marginalia
+    :ensure t
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode)
+    :config
+    (setq marginalia-field-width 120
+          marginalia-align 'left))
+#+end_src
+
+* Consult
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package consult
+  :ensure  t)
+#+end_src
+
+* Embark
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package embark
+    :ensure t)
+#+end_src
+
+* Embark-Consult
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package embark-consult
+ :ensure t)
+#+end_src
+
+* Yasnippet
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package yasnippet
+    :ensure t)
+(yas-global-mode 1)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package yasnippet-snippets
+    :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package consult-yasnippet
+  :ensure t)
+#+end_src
+
+* Dired
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+
+  (add-hook 'dired-mode-hook 
+            (lambda () 
+              (dired-omit-mode 1)
+              (dired-hide-details-mode 1)
+              (visual-line-mode -1)
+              (setq header-line-format nil)))
+
+  (setq dired-file-handlers
+        '(("\\.\\(jpg\\|jpeg\\|png\\|gif\\|webp\\)\\'" . (lambda () (sxiv)))))
+  #+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq find-file-existing-other-name t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always) 
+  (setq dired-dwim-target t)
+  (setq dired-async-message-function nil)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq dired-omit-verbose nil)
+#+end_src
+
+** Set dired-omit-mode to omit all dotfiles and auto saves
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq dired-omit-files "^\\.$\\|^\\.\\.$\\|^\\.[^.].*\\|^#.*#$\\|^aider$\\|^aidervenv$")
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (with-eval-after-load 'dired
+    (define-key dired-mode-map (kbd "TAB") 'dired-hide-subdir))
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "h") 'dired-up-directory))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "l") 'dired-find-file))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq dired-kill-when-opening-new-dired-buffer t)
+(setq auto-save-default nil)
+  (setq auto-save-interval 0)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package image-dired+
+    :ensure t)
+  (eval-after-load 'image-dired+ '(image-diredx-async-mode 1))
+#+end_src
+
+* LLM Integration
+** Gptel
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package gptel
+      :ensure t
+      :config
+      (setq gptel-track-media t
+            gptel-stream t
+            gptel-use-header-line nil
+            gptel-default-mode #'org-mode
+            gptel-org-branching-context nil
+            ))
+
+
+    (defun nb/pentablet ()
+      (interactive)
+      (start-process "PenTablet" nil "PenTablet"))
+
+  (defun nb/create-popup-gptel()
+  (interactive)
+  (gptel "*gptelpopupbuffer*")
+  (let ((buffer (display-buffer "*gptelpopupbuffer*" 
+                 '((display-buffer-reuse-window display-buffer-in-side-window)
+                   (side . bottom)
+                   (window-height . 20)
+                   (reusable-frames . visible)))))
+    (select-window (get-buffer-window buffer))))
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/llm-keep-model-alive ()
+    "Keep an Ollama model running on homelab loaded in memory."
+    (interactive)
+    (start-process "keep-model" nil "curl"
+                   "http://192.168.1.35:11434/api/generate"
+                   "-d"
+                   (format "{\"model\": \"%s\", \"keep_alive\": -1}" gptel-model)
+  (message "model will be kept in memory")))
+
+  (defun nb/llm-unload-model ()
+    "Unload ollama model on homelab."
+    (interactive)
+    (start-process "keep-model" nil "curl"
+                   "http://192.168.1.35:11434/api/generate"
+                   "-d"
+                   (format "{\"model\": \"%s\", \"keep_alive\": 0}" gptel-model)
+  (message "model will be kept in memory")))
+#+end_src
+
+*** Models
+**** On hpenvy laptop
+
+#+begin_src emacs-lisp :tangle no
+(gptel-make-ollama "llama3.2:1b"
+                 :host "192.168.1.243:11434"
+                 :stream t
+                 :models '(llama3.2:1b))
+#+end_src
+
+**** On Homelab
+
+#+begin_src emacs-lisp :tangle no
+(gptel-make-ollama "deepseek-r1:7b"
+                 :host "192.168.1.47:11434"
+                 :stream t
+                 :models '(deepseek-r1:7b))
+#+end_src
+
+
+** model switch functions
+
+#+begin_src elisp :tangle no
+  (defun nb/setllm-commonlisp7b ()
+    "Set GPTel model to Qwen 2.5 Coder with common lisp programming system message."
+    (interactive)
+    (setq gptel-model 'qwen2.5-coder:7b-instruct-q4_0)
+    (setq gptel-backend 
+          (gptel-make-ollama "Qwen2.5-coder:7b-instruct-q4_0"
+                            :host "192.168.1.47:11434"
+                            :stream t
+                            :models '(qwen2.5-coder:7b-instruct-q4_0)))
+    (setq gptel--system-message "You are an experienced Common Lisp programming teacher, specializing in game development. Your student is learning Lisp for game programming. When teaching:
+  - Explain concepts using gamedev-relevant examples (e.g., entity systems, collision detection, state management)
+  - Frame solutions in gaming contexts like sprite movement, game loops, or resource management
+  - Suggest multiple approaches focusing on Lisp's strengths (CLOS, macros, REPL-driven development)
+  - Use game mechanics to illustrate functional programming concepts
+  - Highlight performance considerations specific to gamedev
+  - Connect abstract concepts to practical game development challenges
+  - Point out Common Lisp idioms and best practices
+  - Recommend game-related projects for practice
+
+  Guide students to understand both the 'how' and 'why' of Common Lisp programming in a game development context. Use the Socratic method to encourage problem-solving skills.")
+    (message "Switched to Qwen2.5-coder:7b-instruct-q4_0 setup to assist you for common lisp")
+  (nb/llm-keep-model-alive))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/setllm-commonlisp3b ()
+    "Set GPTel model to Qwen 2.5 Coder with common lisp programming system message."
+    (interactive)
+    (setq gptel-model 'qwen2.5-coder:3b)
+    (setq gptel-backend 
+          (gptel-make-ollama "Qwen2.5-coder:3b"
+                            :host "192.168.1.47:11434"
+                            :stream t
+                            :models '(qwen2.5-coder:3b)))
+    (setq gptel--system-message "You are an experienced Common Lisp programming teacher, specializing in game development. Your student is learning Lisp for game programming. When teaching:
+  - Explain concepts using gamedev-relevant examples (e.g., entity systems, collision detection, state management)
+  - Frame solutions in gaming contexts like sprite movement, game loops, or resource management
+  - Suggest multiple approaches focusing on Lisp's strengths (CLOS, macros, REPL-driven development)
+  - Use game mechanics to illustrate functional programming concepts
+  - Highlight performance considerations specific to gamedev
+  - Connect abstract concepts to practical game development challenges
+  - Point out Common Lisp idioms and best practices
+  - Recommend game-related projects for practice
+
+  Guide students to understand both the 'how' and 'why' of Common Lisp programming in a game development context. Use the Socratic method to encourage problem-solving skills.")
+    (message "Switched to Qwen2.5-coder:3b setup to assist you for common lisp")
+    (nb/llm-keep-model-alive))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/setllm-qwencoder7b ()
+    "Set GPTel model to Qwen 2.5 Coder."
+    (interactive)
+    (setq gptel-model 'qwen2.5-coder:7b-instruct-q4_0)
+    (setq gptel-backend 
+          (gptel-make-ollama "Qwen2.5-coder:7binstruct"
+                            :host "192.168.1.47:11434"
+                            :stream t
+                            :models '(qwen2.5-coder:7b-instruct-q4_0)))
+    (setq gptel--system-message "You are an llm assistant living in emacs.")
+    (message "Switched to Qwen2.5-coder:3b setup to assist you for common lisp")
+    (nb/llm-keep-model-alive))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/choose-llm-setup ()
+  (interactive)
+  (let* ((models '(nb/setllm-claude35sonnet nb/setllm-claudehaiku nb/setllm-claude37sonnet))
+         (choice (completing-read "Choose llm setup: " models)))
+    (funcall (intern choice))))
+#+end_src
+
+*** Gptel quick :disabled:
+
+Uses posframe if installed.
+
+#+begin_src elisp :tangle no
+  (use-package gptel-quick
+    :ensure t
+    :straight (:type git :host github :repo "karthink/gptel-quick")
+    :config
+    (setq gptel-quick-word-count 5))
+#+end_src
+
+#+begin_src elisp :tangle no
+  (use-package nb-gptel-quick                                                    
+   :load-path "~/.emacs.d/lisp"                                                 
+   :after gptel                                                                 
+   :commands (nb-gptel-quick)                                                   
+   :custom                                                                      
+   (gptel-quick-system-message "Write the answer with zero explanation."))   
+#+end_src
+
+** Project and workspace launchers
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun open-godot-workspace-1 ()
+    "Open Godot in EXWM workspace 1."
+    (interactive)
+    (exwm-workspace-switch 1)
+    (start-process "godot" nil "godot"))
+
+  (defun launch-gdlisp-workspace ()
+    "Open gdlisp workspace and launch Godot"
+    (interactive)
+    (exwm-workspace-switch 0)
+    (find-file "/home/nullbath/projects/testproject/scripts/lisp.gd")
+    (open-godot-workspace-1)
+    (exwm-workspace-switch 0))
+#+end_src
+
+
+* Modeline
+** Disable modeline using [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]] 
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package hide-mode-line
+    :ensure t
+    :init
+    (global-hide-mode-line-mode -1))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (setq exwm-workspace-show-all-buffers nil)
+  (setq exwm-force-tiling-visual nil)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(exwm-input-set-key (kbd "s-i") #'exwm-input-toggle-keyboard)
+#+end_src
+
+** Disable modeline in startup hook
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (add-hook 'emacs-startup-hook (lambda () (setq-default mode-line-format nil)))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq mode-line-in-non-selected-windows t)
+#+end_src
+
+* Eww
+** Automatically set newly rendered eww buffers to 'readable'
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package eww
+  :ensure t
+  :config
+  (setq eww-auto-rename-buffer :title
+        shr-max-image-proportion 0.6
+        shr-use-fonts nil)
+        
+  :bind (:map eww-mode-map
+         ("C-h" . eww-back-url)
+         ("C-l" . eww-forward-url)
+         ("f" . ace-link-eww)
+         ("J" . scroll-up-command)
+         ("K" . scroll-down-command)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun my-eww-readable-hook ()
+  (when (string-match-p "\\(wikipedia.org\\|github.com\\)" (eww-current-url))
+    (eww-readable)))
+(add-hook 'eww-after-render-hook #'my-eww-readable-hook)
+#+end_src
+
+** Use defined face fonts not shr fonts
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun my/eww-tag-div (dom)
+  (let ((display (cdr (assq 'display shr-stylesheet))))
+    (if (or (equal display "inline")
+            (equal display "inline-block"))
+        (shr-generic dom)
+      (shr-ensure-newline)
+      ;; Modifications of the default function
+      (let ((shr-indentation
+             (if (string-prefix-p "comment " (dom-attr dom 'class))
+                 (+ shr-indentation
+                    (* 4 shr-table-separator-pixel-width))
+               shr-indentation)))
+        (shr-generic dom))
+      (shr-ensure-newline))))
+
+(setq shr-external-rendering-functions '((div . my/eww-tag-div)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/eww-display-as-image ()
+  (let ((url (eww-current-url)))
+    (when (and url
+               (stringp url)
+               (string-match-p "\\.\\(png\\|jpg\\|jpeg\\|gif\\|webp\\)\\'" url))
+      (image-mode))))
+
+(add-hook 'eww-mode-hook 'nb/eww-display-as-image)
+#+end_src
+
+** Eww bookmark to org file
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun eww-bookmark-to-org ()
+  "Bookmark current EWW page to org file with heading selection or creation."
+  (interactive)
+  (let* ((url (eww-current-url))
+         (title (plist-get eww-data :title))
+         (org-file "~/org/ewwbookmarks.org")
+         (headings (with-current-buffer (find-file-noselect org-file)
+                    (org-map-entries 
+                     (lambda () (nth 4 (org-heading-components)))
+                     t 'file)))
+         (heading (completing-read "Select or enter new heading: " headings nil nil))
+         (bookmark-entry (format "   [[%s][%s]]\n" url title)))
+    (with-current-buffer (find-file-noselect org-file)
+      (goto-char (point-min))
+      (unless (re-search-forward (concat "* " heading) nil t)
+        ;; Heading not found, create it at end of file
+        (goto-char (point-max))
+        (unless (bolp) (insert "\n"))
+        (insert "* " heading "\n"))
+      (end-of-line)
+      (insert "\n" bookmark-entry)
+      (save-buffer))))
+#+end_src
+
+** Eww load org-mode bookmark
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun eww-load-org-bookmark ()
+  "Load an EWW bookmark from org file by selecting heading and link."
+  (interactive)
+  (let* ((org-file "~/org/ewwbookmarks.org")
+         (headings (with-current-buffer (find-file-noselect org-file)
+                    (org-map-entries 
+                     (lambda () (nth 4 (org-heading-components)))
+                     t 'file)))
+         (heading (completing-read "Select heading: " headings nil t))
+         (links (with-current-buffer (find-file-noselect org-file)
+                 (org-element-map (org-element-parse-buffer) 'link
+                   (lambda (link)
+                     (when (save-excursion
+                             (goto-char (org-element-property :begin link))
+                             (re-search-backward (concat "* " heading) nil t))
+                       (cons (buffer-substring-no-properties
+                             (org-element-property :begin link)
+                             (org-element-property :end link))
+                            (org-element-property :raw-link link)))))))
+         (chosen-link (cdr (assoc (completing-read "Select link: " links nil t) links))))
+    (when chosen-link
+      (eww chosen-link))))
+#+end_src
+
+* Org Mode
+
+Make org headings to be easier to distinct from the text body.
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (use-package org
+        :ensure t
+        :config
+        (setq org-log-into-drawer t
+              org-agenda-todo-ignore-scheduled 'all
+              org-fold-core-style 'overlays
+              org-indent-indentation-per-level 4
+              org-tab-first-hook nil
+              org-cycle-hook nil
+              org-startup-folded nil
+              org-image-actual-width 200
+              org-list-indent-offset 4
+              org-startup-with-inline-images t)
+        :bind (:map org-mode-map
+                    ("TAB" . org-cycle)
+                    ("C-c h" . org-metaleft)
+                    ("C-c l" . org-metaright)
+                    :hook
+                    (org-mode . org-indent-mode)))
+
+
+
+  (add-hook 'org-mode-hook 'org-indent-mode)
+(add-hook 'org-mode-hook 'visual-line-mode)
+
+      (defun nb/my-custom-agenda ()
+        "Launch a custom agenda view."
+        (interactive)
+        (org-agenda nil "z")) ; "c" is the key for your custom view
+#+end_src
+** Keybinds
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/log-game ()
+    "Log a new game entry with properties and genre tag."
+    (interactive)
+    (let* ((title (read-string "Title: "))
+           (genre (read-string "Genre tag (e.g. indie): "))
+           (developer (read-string "Developer: "))
+           (publisher (read-string "Publisher: "))
+           (year (read-string "Release year: "))
+           (quarter (completing-read "Quarter: " '("Q1" "Q2" "Q3" "Q4")))
+           (platform (read-string "Platform: "))
+           (url (read-string "URL: ")))
+      (insert (format "** %s %s\n" title 
+                     (if (string-empty-p genre) 
+                         ""
+                       (format ":%s:" genre))))
+      (insert ":PROPERTIES:\n")
+      (insert (format ":DEVELOPER: %s\n" developer))
+      (insert (format ":PUBLISHER: %s\n" publisher)) 
+      (insert (format ":RELEASE: %s-%s\n" year quarter))
+      (insert (format ":PLATFORM: %s\n" platform))
+      (insert (format ":URL: %s\n" url))
+      (insert ":END:\n\n")))
+
+#+end_src
+
+** Org Download
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+            (use-package org-download
+              :ensure t)
+        (setq org-download-screenshot-method "scrot -s %s")
+
+
+    (setq org-download-delete-image-after-download t)
+
+  (setq org-download-image-dir
+        (lambda ()
+          (concat
+           (file-name-sans-extension
+            (buffer-file-name))
+           "-images")))
+#+end_src
+** Org-babel
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/org-babel-tangle-async ()
+    (interactive)
+    (let ((proc (start-process "org-tangle" nil "emacs" "--batch" "-l" "org"
+                              (buffer-file-name) "-f" "org-babel-tangle")))
+      (set-process-sentinel
+       proc
+       (lambda (process event)
+         (when (eq (process-status process) 'exit)
+           (message "Finished tangling %s" (buffer-name)))))))
+
+
+
+
+
+
+  
+#+end_src
+** Org Agenda
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (setq org-todo-keywords
+          '((sequence "TODO" "IN-PROGRESS" "DONE")))
+
+    (setq org-clock-in-switch-to-state "IN-PROGRESS")
+
+  (add-hook 'org-agenda-mode-hook (lambda () 
+    (centered-cursor-mode -1)))
+
+    (setq org-agenda-window-setup 'current-window)
+    (setq org-clock-out-switch-to-state "TODO")
+    (setq org-modern-keywords '("TODO" "IN-PROGRESS" "RESEARCH" "DONE"))
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package org-modern
+    :ensure t)
+
+(setq org-modern-block-name t
+      org-modern-block-fringe nil)
+  (setq org-modern-fold-stars '(("◯" . "◯")
+                                ("○" . "○")
+                                ("∘" . "∘")
+                                ("∘" . "∘")
+                                ("·" . "·")))
+  (setq org-todo-keyword-faces
+        `(("TODO" . (:inherit org-modern-todo))
+          ("RESEARCH" . (:inherit org-modern-todo))
+          ("DONE" . (:inherit org-modern-todo :foreground "#000000"))))
+  (with-eval-after-load 'org (global-org-modern-mode))
+  (setq
+   org-auto-align-tags t
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "◀── now ───────────────────────────")
+
+  ;; Ellipsis styling
+  (setq org-ellipsis "…")
+
+  (global-org-modern-mode)
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq org-src-window-setup 'current-window)
+  (global-prettify-symbols-mode 1)
+  (setq prettify-symbols-alist '(("lambda" . ?λ)))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/check-parens-report ()
+    "Check parentheses and report if they are balanced."
+    (interactive)
+    (condition-case err
+        (progn
+          (check-parens)
+          (message "Parentheses are balanced ✓"))
+      (error (message "Parentheses error: %s" (error-message-string err)))))
+#+end_src
+
+** Org Pomodoro
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+	(use-package org-pomodoro
+	  :ensure t)
+#+end_src
+
+** Org roam
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package org-roam
+    :ensure t
+    :custom
+    (org-roam-directory (file-truename "~/org/notes/"))
+   ;; :bind (("C-c n l" . org-roam-buffer-toggle)
+   ;;        ("C-c n f" . org-roam-node-find)
+   ;;        ("C-c n g" . org-roam-graph)
+   ;;        ("C-c n i" . org-roam-node-insert)
+   ;;        ("C-c n c" . org-roam-capture)
+    ;;       ;; Dailies
+    ;;       ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    ;; If you're using a vertical completion framework, you might want a more informative completion interface
+    (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-db-autosync-mode))
+
+
+  (setq org-roam-completion-everywhere t)
+
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (use-package consult-org-roam
+    :ensure t)
+      (use-package org-roam-ui
+    :ensure t)
+
+    (defun drug-log ()
+    "Log medication in org-roam daily with timestamp, amount, and type."
+    (interactive)
+    (org-roam-dailies-goto-today)
+    (let ((amount (read-string "Amount: "))
+          (medicine (read-string "Medicine: ")))
+      (org-insert-heading)
+      (insert (format-time-string "%H:%M"))
+      (newline)
+      (insert (format "Amount: %s\nMedicine: %s" amount medicine))))
+#+end_src
+
+** Org super agenda
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package org-super-agenda
+    :ensure t
+    :after org-agenda
+    :init
+    (setq org-agenda-skip-scheduled-if-done nil
+          org-agenda-skip-deadline-if-done nil
+          org-agenda-include-deadlines t
+          org-agenda-block-separator t
+          org-agenda-timegrid-use-ampm t
+          org-habit-show-all-today t
+          org-habit-show-habits nil          ; hide from time grid
+          org-habit-show-habits-only-for-today t  ; show graphs in Habits section
+          org-habit-graph-column 40         ; adjust graph position
+          org-habit-show-habits t
+          org-agenda-compact-blocks t
+          org-agenda-todo-ignore-scheduled nil
+          org-agenda-start-day nil ;; i.e. today
+          org-agenda-span 1
+          org-agenda-start-on-weekday nil)
+
+    (setq org-agenda-custom-commands
+          '(("z" "Super zaen view"
+             ((agenda "" ((org-agenda-span 'day)
+                          (org-agenda-include-deadlines nil)
+                          (org-habit-show-habits t)
+                          (org-agenda-include-diary nil)
+                          (org-super-agenda-groups
+                           '((:name "Today"
+                                    :time-grid t
+                                    :date today
+                                    :habit nil 
+                                    :order 1)
+
+                             (:discard (:scheduled past))
+                             ))))
+              (alltodo "" ((org-agenda-overriding-header "")
+                           (org-super-agenda-groups
+                            '((:name "Overdue Schedules"
+                                     :scheduled past
+                                     :face (:foreground "#8B0000")
+                                     :order 84)
+                              (:name "Overdue deadlines"
+                                     :deadline past
+                                     :face (:foreground "#8B0000")
+                                     :order 85)
+                              (:name "Important:"
+                                     :tag "Important"
+                                     :priority "A"
+                                     :face (:foreground "#8B0000")
+                                     :order 6)
+                              (:name "Todo:"
+                                     :and (:todo t
+                                                 :priority (nil "A" "B")
+                                                 :not (:habit t))
+                                     :order 7)
+                              (:discard (:habit t))
+                              (:name "Due Today"
+                                     :deadline today
+                                     :order 3)
+                              (:name "Issues"
+                                     :tag "Issue"
+                                     :order 12)
+                              (:name "Waiting"
+                                     :todo "WAITING"
+                                     :order 20)
+                              (:name "Trivial:"
+                                     :priority<= "C"
+                                     :tag ("Trivial" "Unimportant")
+                                     :todo ("SOMEDAY")
+                                     :order 35)
+                              (:discard (:tag ("Chore" "Routine" "Daily")))
+                              (:name "Other items"
+                                     :anything t
+                                     :order 99)))))))))
+    :config
+    (org-super-agenda-mode)
+    :hook (org-agenda-mode . org-super-agenda-mode))
+
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "j") 'org-agenda-next-item)
+    (define-key org-agenda-mode-map (kbd "d") 'org-agenda-deadline)
+    (define-key org-agenda-mode-map (kbd "k") 'org-agenda-previous-item)
+    (define-key org-agenda-mode-map (kbd "<down>") 'org-agenda-next-item)
+    (define-key org-agenda-mode-map (kbd "<up>") 'org-agenda-previous-item)
+    (define-key org-agenda-mode-map (kbd "s") 'org-agenda-schedule)
+    (define-key org-agenda-mode-map (kbd "l") 'org-agenda-switch-to)
+    (define-key org-agenda-mode-map (kbd "S") 'org-save-all-org-buffers)
+    (define-key org-agenda-mode-map (kbd "SPC") 'execute-extended-command)
+    )
+
+  (with-eval-after-load 'org-super-agenda
+    (define-key org-super-agenda-header-map (kbd "j") 'org-agenda-next-item)
+    (define-key org-super-agenda-header-map (kbd "d") 'org-agenda-deadline)
+    (define-key org-super-agenda-header-map (kbd "l") 'org-agenda-switch-to)
+    (define-key org-super-agenda-header-map (kbd "k") 'org-agenda-previous-item)
+    (define-key org-super-agenda-header-map (kbd "<down>") 'org-agenda-next-item)
+    (define-key org-super-agenda-header-map (kbd "<up>") 'org-agenda-previous-item)
+    (define-key org-super-agenda-header-map (kbd "s") 'org-agenda-schedule)
+    (define-key org-super-agenda-header-map (kbd "S") 'org-save-all-org-buffers)
+    (define-key org-super-agenda-header-map (kbd "SPC") 'execute-extended-command)
+    )
+
+  (setq org-super-agenda-header-prefix "")
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %?-12t% s")
+          (todo . " %i %-12:c")
+          (tags . " %i %-12:c")
+          (search . " %i %-12:c")))
+
+  (setq org-agenda-start-with-log-mode t
+        org-agenda-log-mode-items '(clock state closed))
+
+
+  (use-package org-agenda-files-track
+    :ensure t
+    :config
+    (org-agenda-files-track-mode 1))
+#+end_src
+
+* OrgQL
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+      (use-package org-ql
+      :ensure t)
+      (defun clean-org-link (value)
+        (if (string-match "\\[\\[.*\\]\\[\\(.*\\)\\]\\]" value)
+            (match-string 1 value)
+          value))
+
+    (defun search-game-properties ()
+      (interactive)
+      (let* ((games-file "/home/nullbath/org/notes/20241211171147-games.org")
+             (properties '("DEVELOPER" "PUBLISHER" "RELEASE" "PLATFORM"))
+             (selected-prop (completing-read "Choose property: " properties))
+             (values-alist (mapcar (lambda (v)
+                                    (cons (clean-org-link v) v))
+                                  (org-property-values selected-prop)))
+             (search-term (completing-read (format "Search %s: " selected-prop)
+                                         (mapcar #'car values-alist)))
+             (full-value (cdr (assoc search-term values-alist))))
+        (org-ql-search games-file
+          `(property ,selected-prop ,full-value))))
+
+#+end_src
+
+* Custom launcher
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun run-launcher ()
+    (interactive)
+    (let ((selected (completing-read "Run: " (split-string (shell-command-to-string "compgen -c") "\n"))))
+      (start-process selected nil selected)))
+
+(setq org-link-make-description-function
+      (lambda (_link desc)
+        (read-string "Description: " desc)))
+#+end_src
+
+* Terminal
+
+Vterm requires:
+  - GNU Emacs >= 25.1 with module support
+  - cmake >= 3.11
+  - libtool-bin
+  - libvterm >= 0.2
+
+Available on GNU Guix as emacs-vterm.
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package vterm
+    :ensure t
+    :hook ((vterm-mode . (lambda ()
+                           (visual-line-mode -1)
+                           (setq header-line-format nil)
+                           (centered-cursor-mode -1))))
+    :config
+    (setq vterm-timer-delay 0.1))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun create-vterm-here ()
+  (interactive)
+  (vterm t))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun create-dropdown-vterm ()
+    (interactive)
+    (let* ((buf-name "/dropdown-terminal/")
+           (buf (if (get-buffer buf-name)
+                    (get-buffer buf-name)
+                  (let ((new-buf (generate-new-buffer buf-name)))
+                    (with-current-buffer new-buf
+                      (vterm-mode)
+                      (setq-local header-line-format nil))
+                    new-buf)))
+           (window (display-buffer-in-side-window
+                    buf
+                    '((window-width . 0.5)
+                      (window-height . 0.05)
+                      (side . top)
+                      (slot . 0)))))
+      (select-window window)
+      (set-window-parameter window 'exwm-floating t))
+    (meow-insert-mode))
+#+end_src
+
+* Agenda Posframe popup :disabled:
+
+#+begin_src elisp :tangle no
+    (defun my-posframe-poshandler-bottom-left-offset (info)
+      (let ((pos (posframe-poshandler-frame-bottom-left-corner info)))
+        (cons (+ (car pos) 20)
+              (cdr pos))))
+
+  (defun nb/daily-view-agenda-popup ()
+    (interactive)
+    (let ((popup-buf (get-buffer-create "*agenda-popup*"))
+          (agenda-buf (get-buffer-create "*Org Agenda*")))
+      (with-current-buffer agenda-buf
+        (org-agenda nil "a"))
+
+      (with-current-buffer popup-buf
+        (erase-buffer)
+        (insert-buffer-substring agenda-buf)
+        (org-agenda-mode)
+        (setq-local header-line-format nil)
+        (evil-local-set-key 'normal (kbd "q")
+                           (lambda ()
+                             (interactive)
+                             (posframe-hide-all))))
+
+      (posframe-show popup-buf
+                     :position (point)
+                     :width 50
+                     :height 15
+                     :poshandler 'posframe-poshandler-point-bottom-left-corner
+                     :border-width 2
+                     :border-color "gray50"
+                     :internal-border-width 2
+                     :accept-focus t)
+
+      (let ((frame (buffer-local-value 'posframe--frame popup-buf)))
+        (raise-frame frame)
+        (select-frame-set-input-focus frame)
+        (evil-normal-state))
+      (kill-buffer agenda-buf)))
+
+  (defun create-posframe-org-popup ()
+    (interactive)
+    (let* ((timestamp (format-time-string "%Y%m%d-%H%M%S"))
+           (filename (concat "~/org/aiconvos/chat-" timestamp ".org")))
+      (setq buf (find-file-noselect filename))
+      (with-current-buffer buf
+        ;; Rest of the buffer setup remains the same
+        (org-mode)
+        (gptel-mode)
+        (setq-local header-line-format nil) 
+        (setq-local kill-buffer-query-functions nil)
+        (set-buffer-modified-p nil)
+        (setq buffer-offer-save nil)
+        (evil-local-set-key 'normal (kbd "q") 
+                            (lambda () 
+                              (interactive)
+                              (save-buffer)
+                              (posframe-hide-all)
+                              ))
+        ;; Use buf instead of buf in posframe-show
+        (posframe-show buf
+                       :width 40
+                       :height 20 
+                       :poshandler 'my-posframe-poshandler-bottom-left-offset
+                       :border-width 1
+                       :border-color "gray50"
+                       :accept-focus t
+                       :foreground-color (face-attribute 'default :foreground)
+                       :background-color (face-attribute 'default :background)
+                       :internal-border-color (face-attribute 'default :background)
+                       :min-height 20
+                       :min-width 20
+                       :internal-border-width 5
+                       :parameters '((top-margin . 5)))
+
+        (let ((frame (buffer-local-value 'posframe--frame buf)))
+          (raise-frame frame)
+          (select-frame-set-input-focus frame)
+          (with-current-buffer buf
+            (set-window-margins (frame-selected-window frame) 10 10))
+          (evil-insert-state)))))
+#+end_src
+
+* Corfu
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package corfu
+    :ensure t
+    :bind (:map corfu-map
+                ("C-j" . corfu-next)
+                ("C-k" . corfu-previous))
+    :init
+    (global-corfu-mode)
+    :config
+    (setq corfu-auto t
+          corfu-auto-delay 0
+          corfu-popupinfo-mode nil
+          corfu-popupinfo-delay 0.05
+          corfu-quit-no-match 'separator))
+
+    (setq text-mode-ispell-word-completion nil)
+(add-hook 'gdscript-mode-hook #'corfu-mode)
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height)
+    "Advise `corfu--make-frame` to show below or above cursor depending on space."
+    (let* ((pos (window-absolute-pixel-position))
+           (new-x (- (car pos) 24))
+           (display-height (display-pixel-height))
+           (new-y (if (> (+ (cdr pos) height) display-height)
+                      (- (cdr pos) height 20) ; Show above if near bottom
+                    (+ (cdr pos) 0))))        ; Show below normally
+      (funcall orig-fun frame new-x new-y width height)))
+
+  (advice-add 'corfu--make-frame :around #'advise-corfu-make-frame-with-monitor-awareness)
+
+#+end_src
+
+* Dabbrev
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  ;; Use Dabbrev with Corfu!
+  (use-package dabbrev
+    :ensure t
+    ;; Swap M-/ and C-M-/
+    :bind (("C-<tab>" . dabbrev-completion)
+           ("C-M-/" . dabbrev-expand))
+    :config
+    (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+    ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
+    (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+    (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+
+
+  (setq corfu-preselect 'prompt)
+#+end_src
+
+* Orderless
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package orderless
+  :ensure t
+  :custom
+  (orderless-style-dispatchers '(orderless-affix-dispatch))
+  (orderless-component-separator #'orderless-escapable-split-on-space)
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((-file (styles partial-completion)))))
+  #+end_src
+
+* SICP
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package sicp
+  :ensure t)
+#+end_src
+
+* Perspective
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+	(use-package perspective
+  :custom
+  (persp-mode-prefix-key (kbd "C-O"))
+	  :ensure t
+	:init
+      (persp-mode))
+
+      (setq exwm-modeline-randr nil)
+#+end_src
+
+* Perspective exwm
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package perspective-exwm
+      :ensure t
+    :config
+  (perspective-exwm-mode))
+  (setq persp-suppress-no-prefix-key-warning t) 
+#+end_src
+
+* Info buffer
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package info-buffer
+    :ensure t)
+#+end_src
+
+* Video player - Mpv
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package mpv
+    :ensure t)
+
+  (defun nb/homelab-play-mpv (url)
+    "Play URL with mpv on remote server."
+    (interactive "sVideo URL: ")
+    (let ((server "homelab"))
+      (start-process "remote-mpv" nil "ssh" server (concat "mpv --loop'" url "'"))))
+
+(defun nb/homelab-mpvkill ()
+  "Kill all mpv processes on remote server."
+  (interactive)
+  (let ((server "homelab"))
+    (start-process "remote-mpv-kill" nil "ssh" server "pkill mpv")))
+#+end_src
+
+* Magit
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package magit
+    :ensure t)
+
+(defun nb/auto-commit ()
+  (interactive)
+  (magit-stage-modified)
+  (magit-commit-create
+   (list "-m" (format-time-string "%Y-%m-%d %H:%M:%S")))
+  (magit-push-current-to-pushremote))
+#+end_src
+
+* Daemon Management
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package daemons
+  :ensure t)
+#+end_src
+
+** Bluetooth daemon
+*** Enable bluetooth
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/enablebluetooth()
+  "Start the bluetooth daemon with sudo"
+  (interactive)
+  (require 'daemons)
+  (let ((sudo-pwd (read-passwd "Sudo password: ")))
+    (shell-command (format "echo %s | sudo -S systemctl start bluetooth" sudo-pwd))))
+#+end_src
+
+*** Disable bluetooth
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/disablebluetooth()
+  "Stop the bluetooth daemon with sudo"
+  (interactive)
+  (require 'daemons)
+  (let ((sudo-pwd (read-passwd "Sudo password: ")))
+    (shell-command (format "echo %s | sudo -S systemctl stop bluetooth" sudo-pwd))))
+#+end_src
+
+*** Connect to AirPod
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/airpod-connect ()
+  "Connect bluetooth to Airpods"
+  (interactive)
+  (shell-command "bluetoothctl connect D0:65:44:87:9E:EF"))
+#+end_src
+
+*** Disconnect from AirPods
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/airpod-disconnect ()
+  "Connect bluetooth to Airpods"
+  (interactive)
+  (shell-command "bluetoothctl disconnect D0:65:44:87:9E:EF"))
+#+end_src
+
+* File/buffer management
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/kill-non-visible-buffers ()
+    (interactive)
+    (dolist (buffer (buffer-list))
+      (unless (get-buffer-window buffer)
+	(ignore-errors (kill-buffer buffer)))))
+#+end_src
+
+* LSP
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (use-package dap-mode
+    :ensure t)
+
+    (setq gdscript-debug-port 6006)
+#+end_src
+
+* PDF Tools
+
+Requires epdfinfo.
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package pdf-tools
+      :ensure t)
+  (pdf-tools-install)
+  (pdf-loader-install)
+
+  (use-package org-noter
+      :ensure t)
+  (use-package org-pdftools
+      :ensure t)
+
+(org-noter-enable-org-roam-integration)
+#+end_src
+
+
+Pdf view hook
+
+#+begin_src elisp :tangle no 
+  (setq pdf-view-mode-hook  
+    '(evil-collection-pdf-disable-visual-mode pdf-view-fit-width-to-window global-hide-mode-line-mode pdf-tools-enable-minor-modes))
+(setq pdf-view-midnight-colors '("#ffffff" . "#000000"))
+#+end_src
+
+* Weather
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+      (defun pull-weather (location)
+        "Get detailed weather forecast for LOCATION from wttr.in"
+        (interactive "sLocation: ")
+        (let ((url (concat "https://wttr.in/" location "?u&format=\n%l:\n"
+                           "Temperature: %t\n"
+                           "Condition: %C\n"
+                           "Feels like: %f\n"
+                           "Wind: %w\n"
+                           "Precipitation: %p\n"
+                           "Humidity: %h")))
+          (with-current-buffer (url-retrieve-synchronously url)
+            (set-buffer-multibyte t)
+            (goto-char url-http-end-of-headers)
+            (let ((weather-data (decode-coding-string (buffer-substring (point) (point-max)) 'utf-8)))
+              (with-current-buffer (get-buffer-create "*Weather*")
+                (erase-buffer)
+                (insert weather-data)
+                (display-buffer (current-buffer)))))))
+
+      (defun pull-weather-radar ()
+        "Display weather radar"
+        (interactive)
+        (async-shell-command "mpv --no-terminal --loop https://radar.weather.gov/ridge/standard/CONUS_loop.gif?c=" nil nil))
+
+    (defun nb/weather (location)
+      "Get weather info and radar for LOCATION"
+      (interactive "sLocation: ")
+      (pull-weather location) 
+      (split-window-below)
+      (pull-weather-radar))
+  
+  (defun nb/home-weather ()
+    "Get weather info and radar for Leopold, MO"
+    (interactive)
+    (pull-weather "Leopold, MO")
+    (split-window-below)
+    (pull-weather-radar))
+
+#+end_src
+
+* Spray speed reading mode
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(use-package spray
+  :ensure t) 
+#+end_src
+
+* Gif Screencast
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(use-package gif-screencast
+  :ensure t)
+
+(setq gif-screencast-cropping-program "mogrify")
+  (setq gif-screencast-capture-format "ppm")
+#+end_src
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq gif-screencast-output-directory '"/home/nullbath/videos/")
+#+end_src
+
+* Window
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package ace-window
+  :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package windswap
+  :ensure t)
+#+end_src
+
+** Ace-link
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package ace-link
+  :ensure t)
+#+end_src
+
+* EXWM
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (exwm-input-set-key (kbd "s-i") #'exwm-input-toggle-mode)
+  (setq exwm-manage-force-tiling t)
+#+end_src
+
+** new init hook
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+    (setq undo-tree-auto-save-history nil)
+
+      (defun nb/init-function ()
+	(interactive)
+		(shell-command "xset r rate 150 50")
+		(shell-command "xset s off")
+		(shell-command "xset -dpms"))
+    (defun nb/start-screenkey ()
+      "Start screenkey in the background."
+      (interactive)
+      (start-process "screenkey" nil "screenkey"))
+    (defun nb/kill-screenkey ()
+      "Kill screenkey process."
+      (interactive)
+      (shell-command "pkill screenkey"))
+
+    (defun nb/start-polybar ()
+      "Start screenkey in the background."
+      (interactive)
+      (start-process "polybar" nil "polybar"))
+
+    (defun nb/kill-polybar ()
+      "Kill polybar process."
+      (interactive)
+      (shell-command "pkill polybar"))
+
+  (defun printlambdamessage ()
+    (interactive)
+    (message "λ"))
+
+
+
+  (add-hook 'exwm-init-hook
+	    (lambda ()
+	      (call-process "xrdb" nil nil nil "-merge"
+			    (concat "Xft.dpi: " (number-to-string 100)))
+	      (shell-command "xset r rate 200 50")
+	      (shell-command "xset s off -dpms")
+	      (setq exwm-workspace-show-all-buffers t
+		    exwm-layout-show-all-buffers t)
+	      (exwm-layout-show-mode-line)
+	      (shell-command "xrandr --dpi 100")
+	      (shell-command "feh --bg-fill ~/pictures/wallpapers/3.jpg")
+	      (shell-command "setxkbmap -option caps:escape")))
+#+end_src
+
+*** Monitors
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/run-in-background (command)
+    (let ((command-parts (split-string command "[ ]+")))
+      (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defun nb/update-displays ()
+    (nb/run-in-background "autorandr --change --force")
+    (message "Display config: %s"
+             (string-trim (shell-command-to-string "autorandr --current")))
+    (dolist (frame (frame-list))
+      (set-frame-font "Iosevka Nerd Font Bold 11")
+      (set-frame-parameter frame 'minibuffer t)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq exwm-input-prefix-keys
+        '(?\C-x
+          ?\C-u
+          ?\C-h
+          ?\M-x
+          ?\M-=
+          ?\M-&
+          ?\M-:
+          ?\s-i
+          ?\s-t
+          ?\s-h ?\s-j ?\s-k ?\s-l
+          ?\s-H ?\s-J ?\s-K ?\s-L
+          ?\s-v ?\s-s ?\s-q ?\s-Q
+          ?\s-r ?\s-f ?\s-w))
+  (require 'exwm-randr)
+  (exwm-randr-mode 1)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (add-hook 'exwm-workspace-switch-hook
+            (lambda ()
+              (set-frame-font "Iosevka Nerd Font Bold 11" nil t)))
+#+end_src
+
+*** Rename buffers to be more readable
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(add-hook 'exwm-update-class-hook
+          (lambda ()
+          (exwm-workspace-rename-buffer exwm-class-name)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(set-frame-parameter nil 'buffer-predicate 'buffer-file-name)
+(setq window-system-default-frame-alist
+      '((x . ((internal-border-width . 0)
+              (left-fringe . 0)
+              (right-fringe . 0)
+              (tool-bar-lines . 0)
+              (menu-bar-lines . 0)
+              (vertical-scroll-bars . nil)
+              (dpi . 100)))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq fringe-mode 0)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq exwm-workspace-warp-cursor t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "DP-2-2"))
+
+
+  (defun split-and-follow-horizontally ()
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+
+(defun split-and-follow-vertically ()
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq exwm-input-global-keys
+        `(([?\s-f] . exwm-layout-toggle-fullscreen)
+          ([?\s-F] . exwm-floating-toggle-floating)
+          ([?\s-i] . exwm-input-toggle-keyboard)
+          ([?\s-r] . resize-window)
+          ([?\s-?] . helpful-at-point)
+          ([s-tab] . nb/toggle-between-workspaces)
+          ([?\s-L] . windswap-right)
+          ([?\s-J] . windswap-down)
+          ([?\s-K] . windswap-up)
+          ([?\M-x] . execute-extended-command)
+          ([?\s-H] . windswap-left)
+          ([?\s-h] . windmove-left)
+          ([?\s-k] . windmove-up)
+          ([?\s-d] . run-launcher)
+          ([?\s-j] . windmove-down)
+          ([?\s-q] . delete-window)
+          ([?\s-l] . windmove-right)
+          ([?\s-s] . split-and-follow-horizontally)
+          ([?\s-v] . split-and-follow-vertically)
+          ([?\s-1] . (lambda () (interactive) (exwm-workspace-switch 0)))
+          ([?\s-2] . (lambda () (interactive) (exwm-workspace-switch 1)))
+          ([?\s-3] . (lambda () (interactive) (exwm-workspace-switch 2)))
+          ([?\s-4] . (lambda () (interactive) (exwm-workspace-switch 3)))
+          ([?\s-w] . exwm-workspace-switch)))
+  (setq exwm-input-prefix-keys
+        '(?\s-j    ; Super+j
+          ?\s-k    ; Super+k
+          ?\s-h    ; Super+h
+          ?\s-h    ; Super+h
+          ?\s-i    ; Super+h
+          ?\s      ; Super+l
+          ?\32      ; Space
+          ?\w      ; Space
+          ?h      ; Space
+          ?j      ; Space
+          ?k      ; Space
+          ?l      ; Space
+          ?r      ; Space
+          ?H      ; Space
+          ?J      ; Space
+          ?K      ; Space
+          ?L      ; Space
+          ?v      ; Space
+          ?o      ; Space
+          ?\q      ; Space
+          ?s     ; Space
+          ?:       ; Colon
+          ?\M-x))  ; Also allow M-x
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program "qutebrowser")
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package exwm-modeline
+	:ensure t
+	:after (exwm)
+	:config
+	(setq window-system-default-frame-alist
+	      '((x . ((dpi . 100)))))) 
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/setup-x-settings ()
+    "Set up X server settings for keyboard and display."
+    (call-process "xrdb" nil nil nil "-merge"
+                  (concat "Xft.dpi: " (number-to-string 100)))
+    (shell-command "xset r rate 200 60")
+    (shell-command "feh --bg-fill ~/pictures/wallpapers/3.jpg")
+    (shell-command "xrandr --dpi 100")
+    (shell-command "setxkbmap -option caps:escape"))
+
+  (defun nb/autorandr-monitor-select ()
+    "Switch between docked and laptop autorandr profiles"
+    (interactive)
+    (let ((profile (completing-read "Select display profile: "
+                                    '("docked" "laptop")
+                                    nil t)))
+      (async-shell-command (format "autorandr --load %s" profile))
+      (nb/setup-x-settings)
+      (shell-command "feh --bg-fill ~/pictures/wallpapers/3.jpg")))
+#+end_src
+
+* Qutebrowser interation :disabled:
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package password-store
+    :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el 
+  (use-package qutebrowser
+    :ensure t
+    :straight (:type git 
+                     :host github 
+                     :repo "lrustand/qutebrowser.el"
+                     :files ("*.el" "*.py"))
+    :config
+    (global-qutebrowser-exwm-mode 1)
+    (qutebrowser-theme-export-mode 1))
+
+
+  (defun exwm-update-title ()
+    (exwm-workspace-rename-buffer exwm-title))
+
+  (add-hook 'exwm-update-title-hook #'exwm-update-title)
+  (setq qutebrowser-fifo '"/home/nullbath/.config/qutebrowser/userscripts/emacsclient-wrapper")
+  (setq qutebrowser-rpc-should-reconnect nil)
+  
+  (defun qutebrowser-roam-note-capture-url (url title)
+    "Add URL as org link to selected org-roam node."
+    (interactive)
+    (let ((node (org-roam-node-read)))
+      (when node
+        (org-roam-node-visit node)
+        (goto-char (point-max))
+        (insert "\n" (format "[[%s][%s]]" url title)))))
+
+  (setq exwm-manage-configurations
+      '(((equal exwm-class-name "qutebrowser")
+         char-mode t)
+        (t char-mode t)
+        (t tiling t)))
+
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(defun qutebrowser-roam-note-capture-url (url title)
+  "Add URL as org link to org-roam node, creating it if it doesn't exist."
+  (interactive)
+  (let* ((node-title (org-roam-node-read nil "Choose or create node: "))
+         (node (or (org-roam-node-from-title-or-alias node-title)
+                  (org-roam-node-create :title node-title))))
+    (org-roam-capture-
+     :node node
+     :props '(:immediate-finish t))
+    (org-roam-node-visit node)
+    (goto-char (point-max))
+    (insert "\n" (format "[[%s][%s]]" url title))))
+
+#+end_src
+** s
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (setq browse-url-handlers
+        '(("www.youtube.com" . (lambda (url &rest _) 
+                                 (start-process "mpv" nil "mpv" url)))
+          ("youtu.be" . (lambda (url &rest _) 
+                          (start-process "mpv" nil "mpv" url)))))
+#+end_src
+
+
+* Async
+** Provide async functions
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package async
+    :ensure t
+  :init (dired-async-mode 1)
+    :config
+    (require 'async))
+#+end_src
+
+** Enable Asynchronous Execution of Source Code Blocks in Org-mode
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(use-package ob-async
+  :ensure t)
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq async-shell-command-display-buffer nil)
+#+end_src
+
+* EMMS
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package emms
+    :ensure t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(require 'emms-setup)
+(require 'emms-player-mplayer)
+(emms-standard) ;; or (emms-all) for all features
+(setq emms-player-list '(emms-player-mplayer))
+(setq emms-player-mplayer-parameters
+      '("-slave" "-quiet" "-really-quiet" "-ao" "pulse"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(savehist-mode 1)
+#+end_src
+
+* Undo tree
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package undo-tree
+    :ensure t)
+  (global-undo-tree-mode)
+
+(setq history-length 100)
+(setq kill-ring-max 50)
+
+;; Limit undo history
+(setq undo-limit 80000)
+(setq undo-strong-limit 120000)
+(setq undo-outer-limit 12000000)
+
+;; Clear undo history when buffer gets too large
+(add-hook 'before-save-hook
+          (lambda ()
+            (when (> (buffer-size) 1000000)
+              (setq buffer-undo-list nil))))
+#+end_src
+
+* Tab-line 
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq tab-line-close-button-show nil)
+(setq tab-line-new-button-show nil)
+(setq tab-line-separator "")
+#+end_src
+
+* Proced
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun my-proced-setup ()
+  (setq truncate-lines t)
+  (toggle-truncate-lines 1))
+
+(add-hook 'proced-mode-hook #'my-proced-setup)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq proced-format 'medium)
+(setq proced-auto-update-interval 1)
+(setq proced-auto-update-flag t)
+#+end_src
+
+* System Control
+** Set wallpaper
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/set-wallpaper ()
+  "Set wallpaper using feh with file prompt."
+  (interactive)
+  (let ((image (read-file-name "Choose wallpaper: " "~/pictures/wallpapers/")))
+    (call-process "feh" nil nil nil "--bg-fill" (expand-file-name image))))
+#+end_src
+
+** Workspaces
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/toggle-between-workspaces ()
+    (interactive)
+    (cond
+     ((or (= exwm-workspace-current-index 0)
+          (= exwm-workspace-current-index 1))
+      (exwm-workspace-switch (if (= exwm-workspace-current-index 0) 1 0)))
+     ((or (= exwm-workspace-current-index 2)
+          (= exwm-workspace-current-index 3))
+      (exwm-workspace-switch (if (= exwm-workspace-current-index 2) 3 2)))))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/open-project ()
+  (interactive)
+  (let* ((project-dir "~/projects/")
+         (projects (directory-files project-dir nil "^[^.]"))
+         (selected (completing-read "Select project: " projects)))
+    (find-file (concat project-dir selected))))
+#+end_src
+
+** CPU Performance settings
+*** Set Custom CPU settings
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/set-cpu-plan ()
+  "Set custom CPU power settings."
+  (interactive)
+  (message "CPU Power Settings Guide:
+• Frequency: Sets min CPU freq (e.g., 1.5GHz). Lower = more power saving. Beware setting too high.
+• Bias (-b): 0-3:performance, 4-7:balanced perf, 8-11:balanced power, 12-15:power saving
+• Governor: 'performance' (max freq) or 'powersave' (adaptive freq)
+Press any key to continue...")
+  (read-event)
+  (let* ((password (read-passwd "Sudo password: "))
+         (freq (read-string "Enter min frequency (e.g. 1.5GHz): "))
+         (bias (read-string "Enter bias (-b) number (0-15, higher = more power saving): "))
+         (gov (read-string "Enter governor (performance/powersave): ")))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set --min %s" password freq))
+    (shell-command (format "echo %s | sudo -S cpupower set -b %s" password bias))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set -g %s" password gov))))
+#+end_src
+
+*** Set CPU to performance mode
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/cpu-performance ()
+  "Set CPU to performance mode for AC power."
+  (interactive)
+  (let ((password (read-passwd "Sudo password: ")))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set --min 2.3GHz" password))
+    (shell-command (format "echo %s | sudo -S cpupower set -b 0" password))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set -g performance" password))))
+#+end_src
+
+*** Set CPU to powersaving mode
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/cpu-powersave ()
+  "Set CPU to powersave mode for battery."
+  (interactive)
+  (let ((password (read-passwd "Sudo password: ")))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set --min 1GHz" password))
+    (shell-command (format "echo %s | sudo -S cpupower set -b 10" password))
+    (shell-command (format "echo %s | sudo -S cpupower frequency-set -g powersave" password))))
+#+end_src
+
+** Brightness control
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/set-brightness (level)
+  "Set screen brightness to LEVEL (0-100)."
+  (interactive "nBrightness level (0-100): ")
+  (shell-command (format "brightnessctl set %d%%" level)))
+
+(defun nb/brightness-up ()
+  "Increase brightness by 10%."
+  (interactive)
+  (shell-command "brightnessctl set +10%"))
+
+(defun nb/brightness-down ()
+  "Decrease brightness by 10%."
+  (interactive)
+  (shell-command "brightnessctl set 10%-"))
+#+end_src
+
+** Screenshot
+*** Screenshot region
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/screenshot-region ()
+  "Take screenshot of selected region using scrot and slop"
+  (interactive)
+  (let ((default-directory "~/pictures/screenshots/"))
+    (message "Select region to screenshot...")
+    (make-process
+     :name "screenshot"
+     :command '("scrot" "-s" "-f" "%Y-%m-%d_%H-%M-%S_$wx$h.png" "-e" "xclip -selection clipboard -target image/png -i $f")
+     :sentinel (lambda (process event)
+                 (when (string= event "finished\n")
+                   (message "Screenshot saved and copied to clipboard"))))))
+#+end_src
+
+*** Screen shot fullscreen
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/screenshot-fullscreen ()
+  "Take screenshot of selected region using scrot and slop"
+  (interactive)
+  (let ((default-directory "~/pictures/screenshots/"))
+    (message "Taking screenshot...")
+    (make-process
+     :name "screenshot"
+     :command '("scrot" "%Y-%m-%d_%H-%M-%S_$wx$h.png")
+     :sentinel (lambda (process event)
+                 (when (string= event "finished\n")
+                   (message "Screenshot saved to ~/pictures/screenshots/"))))))
+#+end_src
+
+** Record
+*** Start Record region
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (defvar screen-record-process nil
+    "Holds the ffmpeg recording process.")
+
+  (defun nb/screen-record-start (output-file)
+    "Start recording screen area to OUTPUT-FILE using slop and ffmpeg."
+    (interactive "FOutput file: ")
+    (let* ((geometry (shell-command-to-string "slop -f '-video_size %wx%h -i :0.0+%x,%y'"))
+           (cmd (format "ffmpeg -framerate 30 -f x11grab %s %s"
+                       (string-trim geometry)
+                       output-file)))
+      (setq screen-record-process
+            (start-process-shell-command "ffmpeg" nil cmd))))
+#+end_src
+
+*** End record region
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(defun nb/screen-record-stop ()
+  "Stop the screen recording process."
+  (interactive)
+  (when screen-record-process
+    (interrupt-process screen-record-process)
+    (setq screen-record-process nil)
+    (message "Recording stopped")))
+#+end_src
+
+* Devdocs
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package devdocs 
+      :ensure t)
+
+#+end_src
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package devdocs-browser
+    :ensure t)
+#+end_src
+
+* Function Graveyard
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(setq eww-header-line-format
+     (propertize "%u" 'face 'default))
+#+end_src
+
+* Test
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+(setq history-delete-duplicates t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+    (setq exwm-layout-show-all-buffers t)
+
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
+  (use-package toml-mode
+    :ensure t)
+#+end_src
+
+* Config opinions
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/pulsemixer ()
+    "Open vterm and launch pulsemixer"
+    (interactive)
+    (create-vterm-here)
+    (toggle-truncate-lines)
+    (vterm-send-string "pulsemixer")
+    (vterm-send-return))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(defun nb/htop ()
+  "Open vterm in current buffer and run htop."
+  (interactive)
+  (create-vterm-here)
+  (vterm-send-string "htop")
+  (vterm-send-return))
+#+end_src
+
+* new
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq org-confirm-elisp-link-function nil)
+#+end_src
+
+* jdfjdf
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package pulseaudio-control
+    :ensure t)
+#+end_src
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package bookmark+
+      :ensure t
+      :straight t)
+#+end_src
+
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (global-set-key (kbd "s-1") (lambda () (interactive) (exwm-workspace-switch 0)))
+    (global-set-key (kbd "s-2") (lambda () (interactive) (exwm-workspace-switch 1)))
+    (global-set-key (kbd "s-3") (lambda () (interactive) (exwm-workspace-switch 2)))
+    (global-set-key (kbd "s-4") (lambda () (interactive) (exwm-workspace-switch 3)))
+#+end_src
+
+* openwith
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package openwith
+    :ensure t)
+
+  (when (require 'openwith nil 'noerror)
+    (setq openwith-associations
+          (list
+           (list (openwith-make-extension-regexp
+                  '("mpg" "mpeg" "mp4"
+                    "avi" "wmv" "wav" "webm" "mov" "flv"
+                    "ogm" "ogg" "mkv"))
+                 "mpv"
+                 '(file))
+           (list (openwith-make-extension-regexp
+                  '("jpg" "jpeg" "png"
+                    "gif"))
+                 "sxiv ."
+                 '(file))
+
+           (list "\\.ase" "aseprite" '(file))))
+    (openwith-mode 1))
+
+
+  (setq large-file-warning-threshold nil)
+
+  (add-to-list 'auto-mode-alist 
+               '("\\.mp3\\'" . 
+                 (lambda () 
+                   (emms-play-file buffer-file-name))))
+#+end_src
+
+Internally, org-toggle-inline-images calls org-display-inline-images to handle display of inline images. You can advise this function to turn off openwith-mode while it is doing its thing, and to turn it back on afterwards:
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defadvice org-display-inline-images
+  (around handle-openwith
+          (&optional include-linked refresh beg end) activate compile)
+  (if openwith-mode
+      (progn
+        (openwith-mode -1)
+        ad-do-it
+        (openwith-mode 1))
+    ad-do-it))
+#+end_src
+
+* Eglot
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package eglot
+  :ensure t
+  :hook (rust-mode . eglot-ensure))
+
+#+end_src
+
+* Lambda line
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package lambda-line
+    :straight (:type git :host github :repo "lambda-emacs/lambda-line") 
+    :config
+    (when (eq lambda-line-position 'top)
+      (setq-default mode-line-format (list "%_"))
+      (setq mode-line-format (list "%_"))))
+
+  (setq lambda-line-icon-time nil
+        lambda-line-clockface-update-fontset "ClockFaceRect"
+        lambda-line-position 'top
+        lambda-line-abbrev t
+        lambda-line-hspace "  "
+        lambda-line-prefix " "
+        lambda-line-prefix-padding t
+        lambda-line-status-invert nil
+        lambda-line-gui-ro-symbol  "  λ"
+        lambda-line-gui-mod-symbol "  λ"
+        lambda-line-gui-rw-symbol  "  λ" 
+        lambda-line-gui-vc-symbol nil 
+        lambda-line-vc-symbol nil 
+        lambda-line-git-diff-mode-line nil 
+        lambda-line-syntax nil 
+        lambda-line-abbrev nil 
+        lambda-line-time-format nil 
+        lambda-line-time-icon-format nil 
+        lambda-line-time-day-and-date-format nil 
+        lambda-line-space-top 0 
+        lambda-line-space-bottom 0
+        lambda-line-visual-bell nil
+        lambda-line-symbol-position 0)
+
+
+  (setq lambda-line-mode-formats
+        (assq-delete-all 'lambda-line-org-clock-mode lambda-line-mode-formats))
+
+  (setq lambda-line-mode-formats
+        (assq-delete-all 'org-clock-mode lambda-line-mode-formats))
+
+  (advice-add 'lambda-line-vc-project-branch :override (lambda () nil))
+
+  (lambda-line-mode)
+
+#+end_src
+
+* Language support
+
+** Programming practice
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+    (use-package exercism
+      :ensure t)
+#+end_src
+
+** Rust Mode
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+   (use-package rustic
+  :ensure t) 
+  (add-hook 'rustic-mode-hook 'flycheck-mode)
+  (setq rustic-lsp-client 'eglot)
+  (setq flycheck-rust-cargo-executable "/usr/bin/cargo")
+  (setq rustic-cargo-bin '"/usr/bin/cargo")
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 `(rustic-mode . (,(expand-file-name "~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rust-analyzer"))))
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+   (use-package rust-playground
+  :ensure t) 
+#+end_src
+
+** Lisp
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+(sp-local-pair 'text-mode "'" nil :actions nil)
+(sp-local-pair 'prog-mode "'" nil :actions nil)
+#+end_src
+
+** Python-Mode
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package python-mode
+    :ensure t
+    :config
+    (setq python-indent-offset 4))
+#+end_src
+
+*** Pipenv
+
+Pipenv is for managing environments. Requires [[https://stable.melpa.org/#/pyvenv/][pyenv]].
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package pipenv
+    :ensure t)
+#+end_src
+
+** Common Lisp
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (setq common-lisp-hyperspec-root 
+	(concat "file://" (expand-file-name "~/projects/HyperSpec/")))
+#+end_src
+
+*** Sly
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package sly
+    :ensure t
+    :config
+    (setq inferior-lisp-program "/usr/bin/sbcl"))
+  (require 'sly-autoloads)
+#+end_src
+
+*** Sly-asdf :disabled:
+
+#+begin_src elisp :tangle no
+    (use-package sly-asdf
+      :ensure t)
+    (add-to-list 'sly-contribs 'sly-asdf 'append)
+
+  (setq sly-default-lisp 'sbcl)
+  (setq sly-lisp-implementations
+        '((sbcl ("sbcl"))))
+
+    (setq *sly-asdf-lisp-extensions* nil)
+
+#+end_src
+
+*** Sly quicklisp support :disabled:
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package sly-quicklisp
+    :after sly
+    :ensure t)
+#+end_src
+
+*** Sly overlay :disabled:
+
+#+begin_src elisp :tangle no
+(use-package sly-overlay
+    :ensure t)
+#+end_src
+
+*** Sly macrostep :disabled:
+
+#+begin_src elisp :tangle no 
+(use-package sly-macrostep
+      :ensure t)
+#+end_src
+
+*** Sly-repl-ansi-color :disabled:
+
+#+begin_src elisp :tangle no
+  (use-package sly-repl-ansi-color
+    :ensure t)
+
+      (push 'sly-repl-ansi-color sly-contribs)
+
+#+end_src
+
+** Godot
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package gdscript-mode
+    :ensure t)
+(add-hook 'gdscript-mode-hook
+          (lambda () (setq-local devdocs-current-docs '("godot~4.2"))))
+#+end_src
+** Lua :disabled:
+#+begin_src elisp :tangle no
+  (use-package lua-mode
+    :ensure t) 
+#+end_src
+
+** Fennel :disabled:
+#+begin_src elisp :tangle no
+  (use-package fennel-mode
+    :ensure t) 
+#+end_src
+
+
+* Ultra Scroll
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (use-package ultra-scroll
+    :ensure t
+    :straight (:type git :host github :repo "jdtsmith/ultra-scroll"))
+  (ultra-scroll-mode 1)
+#+end_src
+
+* Image Editing
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (defun nb/stitch-images ()
+  "Stitch images together horizontally or vertically using ImageMagick."
+  (interactive)
+  (let* ((files (completing-read-multiple "Select images (comma-separated): " 
+                                        (directory-files default-directory t "\\.\\(jpg\\|png\\|gif\\)$")))
+         (direction (completing-read "Direction (h/v): " '("h" "v")))
+         (output-file (expand-file-name (read-file-name "Save as: ")))
+         (append-type (if (string= direction "h") "+append" "-append"))
+         (status (apply #'call-process "magick" nil "*magick-output*" nil
+                       (append files (list append-type output-file)))))
+    (if (= status 0)
+        (if (file-exists-p output-file)
+            (message "Images stitched successfully to %s" output-file)
+          (message "Error: Output file not created"))
+      (with-current-buffer "*magick-output*"
+        (message "Error running ImageMagick: %s" (buffer-string))))))
+#+end_src
+
+* Popup
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+	(use-package popper
+	  :ensure t
+	  :init
+	  (setq popper-reference-buffers
+		'("\\*Messages\\*"
+		  "Output\\*$"
+		  "\\*Async Shell Command\\*"
+			  "\\*scratch\\*"
+			  "\\*cargo-test\\*"
+			  "\\*devdocs\\*"
+        "\\*gptelpopupbuffer\\*"    ; Add this with escaped asterisks
+
+		  help-mode
+		  devdocs-mode
+		  helpful-mode
+		  compilation-mode))  
+	  (popper-mode 1)
+	  (popper-echo-mode 1))
+
+	(with-eval-after-load 'popper
+	  (popper-mode 1)
+	  (popper-echo-mode 1))
+
+
+(setq popper-window-height 20)
+    (setq display-time-24hr-format nil)    
+#+end_src
+
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (global-font-lock-mode 1)
+  (setq font-lock-support-mode 'jit-lock-mode)
+    (add-hook 'prog-mode-hook 'font-lock-ensure)
+    (add-hook 'text-mode-hook 'font-lock-ensure)
+    (add-hook 'lambda-line-mode-hook 'font-lock-ensure)
+#+end_src
+
+#+begin_src elisp :tangle no
+    (setq display-buffer-alist nil)
+	'(("\\*.*\\*"
+	   (display-buffer-reuse-window display-buffer-same-window)
+	   (reusable-frames . visible))
+	  ("."
+	   (display-buffer-reuse-window display-buffer-same-window)
+	   (reusable-frames . visible))))
+
+  (defun popper-display-popup-at-side (buffer &optional alist)
+    (message "Debug: displaying at side") ; debug message
+    (display-buffer-in-side-window
+     buffer
+     (append alist
+	     `((window-width . 80)
+	       (side . left)
+	       (slot . 0)))))
+
+  (setq popper-display-function #'popper-select-popup-at-bottom)
+#+end_src
+
+** Evil :disabled:
+
+#+begin_src elisp :tangle no
+  (use-package evil
+    :ensure t
+    :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  :config
+  (evil-mode 1))
+#+end_src
+
+#+begin_src elisp :tangle no
+  (use-package evil-collection
+    :after evil
+    :ensure t
+    :custom (evil-collection-setup-minibuffer t)
+    :config
+  (evil-collection-init))
+#+end_src
+
+#+begin_src elisp :tangle no
+      (use-package general
+        :ensure t
+        :init
+        (setq general-override-states '(insert
+                                        emacs
+                                        hybrid
+                                        normal
+                                        visual
+                                        motion
+                                        operator
+                                        replace)))
+
+(general-create-definer my-leader-def
+   :prefix "SPC")
+
+(general-create-definer my-local-leader-def
+:prefix "SPC m")
+
+ (my-leader-def
+   :keymaps 'normal
+   ":" 'execute-extended-command
+   "o -" 'dired-jump
+   "c" 'org-capture)
+
+
+#+end_src
+
+#+begin_src elisp :tangle no
+      (use-package symex
+        :ensure t
+        :after evil
+        :custom
+        (symex-modal-backend 'evil)
+        :config
+        (symex-initialize)
+  (global-set-key (kbd "s-;") 'symex-mode-interface)
+    )
+
+
+  (setq eglot-autoreconnect nil)
+#+end_src
+
+** Theming adjustments
+#+begin_src elisp :tangle ~/.emacs.d/config.el
+  (custom-set-faces
+   '(org-level-1 ((t (:slant italic :height 1.1 :bold t :background "#f0f0f0" :underline t))))
+   '(org-level-2 ((t (:slant italic :height 1.1))))
+   '(dired-directory ((t (:slant italic :height 1.1 :underline t))))
+   '(show-paren-match-expression ((t (:slant italic :height 1.1))))
+   '(org-level-3 ((t (:slant italic :height 1.1))))
+   '(avy-lead-face ((t (:foreground "white" :background "red"))))
+   '(avy-lead-face-0 ((t (:foreground "white" :background "purple"))))
+   '(avy-lead-face-1 ((t (:foreground "white" :background "green"))))
+   '(avy-lead-face-2 ((t (:foreground "white" :background "blue"))))
+   '(fixed-pitch ((t (:family "Iosevka Nerd Font Bold"))))
+   '(show-paren-match-expression ((t (:background "#D9D9D9" :foreground "#000000"))))
+   '(lambda-line-active-status-MD ((t (:foreground "#666666"))))
+   '(lambda-line-active-status-RO ((t (:foreground "#666666"))))
+   '(lambda-line-active-primary ((t (:foreground "#666666" :weight bold))))
+   '(lambda-line-active-status-RW ((t (:foreground "#000000"))))
+   '(lambda-line-visual-bell ((t (:background "#000000"))))
+   '(avy-lead-face ((t (:foreground "#000000" :background "#ffffff"))))
+   '(header-line ((t (:box nil :underline nil))))
+   '(show-paren-match ((t (:background "#263238" :foreground "#FAFAFA"))))
+   '(cursor ((t (:background "#ffffff"))))
+   '(org-ellipsis ((t (:inherit default :box nil))))
+   '(org-modern-symbol ((t (:slant normal))))
+   '(org-todo ((t (:slant normal :foreground "darkred"))))
+   '(org-agenda-structure ((t (:background "#FFFFFF" :foreground "#000000" :underline nil :box "#000000"))))
+   '(highlight-indent-guides-character-face ((t (:foreground "#ffffff"))))
+   '(highlight-indent-guides-top-character-face ((t (:foreground "#ffffff")))))
+#+end_src
+
