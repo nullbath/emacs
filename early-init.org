@@ -1,6 +1,6 @@
 #+STARTUP: content
 * Early-init.el
-
+Early init
 #+begin_src elisp :tangle ~/.emacs.d/early-init.el
 (setq gc-cons-threshold 100000000)
 (setq package-enable-at-startup nil)
