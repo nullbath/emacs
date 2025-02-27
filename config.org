@@ -1234,9 +1234,6 @@ Uses posframe if installed.
   (setq exwm-force-tiling-visual nil)
 #+end_src
 
-#+begin_src emacs-lisp :tangle ~/.emacs.d/config.el
-(exwm-input-set-key (kbd "s-i") #'exwm-input-toggle-keyboard)
-#+end_src
 
 ** Disable modeline in startup hook
 #+begin_src elisp :tangle ~/.emacs.d/config.el
@@ -2197,7 +2194,6 @@ Pdf view hook
 * EXWM
 
 #+begin_src elisp :tangle ~/.emacs.d/config.el
-    (exwm-input-set-key (kbd "s-i") #'exwm-input-toggle-mode)
   (setq exwm-manage-force-tiling t)
 #+end_src
 
